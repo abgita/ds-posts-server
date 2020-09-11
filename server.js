@@ -2,11 +2,13 @@ const ORIGIN = process.env.ORIGIN;
 
 const { handleError } = require( "./utils" );
 const express = require( 'express' );
+const helmet = require("helmet");
 const app = express();
 
 const url = process.env.URL;
 const port = process.env.PORT;
 
+app.use(helmet());
 app.use( express.json() );
 
 app.post( '/post', handleNewPost );

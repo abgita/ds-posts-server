@@ -87,5 +87,9 @@ module.exports = {
         } catch ( err ) {
             handleError( res, 'Cannot get stickers!', err );
         }
+    },
+
+    handleNewPost: (req, res) => {
+        res.header( "Access-Control-Allow-Origin", process.env.ORIGIN );
     }
 };
