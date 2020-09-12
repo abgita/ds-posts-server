@@ -2,40 +2,38 @@
 
 const MongoClient = require( 'mongodb' ).MongoClient;
 
-class MongoDatabase {
-    #dbName;
-    #db = null;
+let db, collection;
 
-    constructor( dbName = process.env.MONGODB_DB ) {
-        this.#dbName = dbName;
-    }
+module.exports = {
+    connect: async ( dbName = process.env.MONGODB_DB, collectionName = process.env.MONGODB_COLLECTION ) => {
+        if ( db ) return;
 
-    connect( host = process.env.MONGODB_HOST, user = process.env.MONGODB_USER, pass = process.env.MONGODB_PASS ) {
+        if ( !dbName ) {
+            throw new Error( "Database name not specified!" );
+        }
+
+        const host = process.env.MONGODB_HOST;
+        const user = process.env.MONGODB_USER;
+        const pass = process.env.MONGODB_PASS;
+
         const uri = `mongodb+srv://${user}:${pass + host}`;
 
-        const opts = {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        };
+        const opts = { useNewUrlParser: true, useUnifiedTopology: true };
 
-        return new Promise( ( resolve, reject ) => {
-            MongoClient.connect( uri, opts, ( err, client ) => {
-                if ( err ) {
-                    reject( err );
-                } else {
-                    this.#db = client.db( this.#dbName );
+        const connection = await MongoClient.connect( uri, opts );
 
-                    resolve( this );
-                }
-            } );
-        } );
-    }
+        db = connection.db( dbName );
 
-    collection( name ) {
-        if ( this.#db === null ) return null;
+        if ( collectionName ) {
+            collection = db.collection( collectionName );
+        }
+    },
 
-        return this.#db.collection( name );
+    getCollection: ( collectionName ) => {
+        return db ? db.collection( collectionName ) : null;
+    },
+
+    getDefaultCollection: () => {
+        return collection;
     }
 }
-
-module.exports = MongoDatabase;
