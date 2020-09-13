@@ -12,7 +12,8 @@
         "express-validator": "^6.6.1",
         "helmet": "^4.1.1",
         "mongodb": "^3.5.7",
-        "node-fetch": "^2.6.0"
+        "node-fetch": "^2.6.0",
+        "node-forge": "^0.10.0"
     },
     "devDependencies": {
         "dotenv": "^8.2.0"

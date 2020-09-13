@@ -3,10 +3,19 @@ const PORT = process.env.PORT;
 
 const express = require( "express" );
 const helmet = require( "helmet" );
-const pdb = require( "./posts-db" );
+const posts = require( "./posts" );
 
 const { handleError, handleSuccess, validate } = require( "./utils" );
-const { param } = require( 'express-validator' );
+const { param, body } = require( 'express-validator' );
+
+const validateNewPost = validate( [
+    body( 'stickerId' ).isLength( { min: 15, max: 17 } ).trim().escape(),
+    body( 'trackId' ).isLength( { min: 15, max: 25 } ).trim().escape()
+] );
+
+const validateGetPost = validate( [
+    param( 'id' ).isLength( { min: 6, max: 8 } ).trim().escape()
+] );
 
 function run() {
     const app = express();
@@ -14,15 +23,24 @@ function run() {
     app.use( helmet() );
     app.use( express.json() );
 
-    app.post( "/", pdb.handleNewPost );
+    app.post( "/", async ( req, res ) => {
+        const stickerId = req.body.stickerId;
+        const trackId = req.body.trackId;
 
-    app.get( "/:id", validate([
-        param( 'id' ).isLength( { min: 6, max: 8 } ).trim().escape()
-    ]), async ( req, res ) => {
         try {
-            const result = await pdb.handlePostRequest( req.params.id );
+            const post = await posts.handleNewPost( stickerId, trackId );
 
-            handleSuccess( res, result );
+            handleSuccess( res, post );
+        } catch ( err ) {
+            handleError( res, err );
+        }
+    } );
+
+    app.get( "/:id", validateGetPost, async ( req, res ) => {
+        try {
+            const post = await posts.getPost( req.params.id );
+
+            handleSuccess( res, post );
         } catch ( err ) {
             handleError( res, err );
         }
@@ -33,4 +51,4 @@ function run() {
     } );
 }
 
-pdb.connect().then( run ).catch( console.error );
+posts.init().then( run ).catch( console.error );

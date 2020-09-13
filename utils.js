@@ -26,8 +26,7 @@ const utils = {
 
         if ( !publicMsg ) {
             res.send();
-        }
-        if ( typeof publicMsg === 'string' && publicMsg.length > 0 ) {
+        } else if ( typeof publicMsg === 'string' && publicMsg.length > 0 ) {
             res.json( { message: publicMsg } );
         } else {
             res.json( publicMsg );
