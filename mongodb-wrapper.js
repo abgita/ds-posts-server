@@ -1,12 +1,12 @@
 "use strict";
 
-const MongoClient = require( 'mongodb' ).MongoClient;
+const { MongoClient } = require( "mongodb" );
 
-let db, collection;
+let client, database;
 
 module.exports = {
-    connect: async ( dbName = process.env.MONGODB_DB, collectionName = process.env.MONGODB_COLLECTION ) => {
-        if ( db ) return;
+    connect: async ( dbName = process.env.MONGODB_DB ) => {
+        if ( client ) return;
 
         if ( !dbName ) {
             throw new Error( "Database name not specified!" );
@@ -20,20 +20,18 @@ module.exports = {
 
         const opts = { useNewUrlParser: true, useUnifiedTopology: true };
 
-        const connection = await MongoClient.connect( uri, opts );
+        client = new MongoClient( uri, opts );
 
-        db = connection.db( dbName );
+        await client.connect();
 
-        if ( collectionName ) {
-            collection = db.collection( collectionName );
-        }
+        database = client.db( dbName );
     },
 
     getCollection: ( collectionName ) => {
-        return db ? db.collection( collectionName ) : null;
+        return database ? database.collection( collectionName ) : null;
     },
 
-    getDefaultCollection: () => {
-        return collection;
+    close: function () {
+        client.close();
     }
 }

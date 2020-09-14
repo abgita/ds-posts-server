@@ -14,7 +14,7 @@ const validateNewPost = validate( [
 ] );
 
 const validateGetPost = validate( [
-    param( 'id' ).isLength( { min: 6, max: 8 } ).trim().escape()
+    param( 'id' ).isLength( { min: 15, max: 35 } ).trim().escape()
 ] );
 
 function run() {
@@ -23,12 +23,12 @@ function run() {
     app.use( helmet() );
     app.use( express.json() );
 
-    app.post( "/", async ( req, res ) => {
+    app.post( "/", validateNewPost, async ( req, res ) => {
         const stickerId = req.body.stickerId;
         const trackId = req.body.trackId;
 
         try {
-            const post = await posts.handleNewPost( stickerId, trackId );
+            const post = await posts.addPost( stickerId, trackId );
 
             handleSuccess( res, post );
         } catch ( err ) {
@@ -36,11 +36,31 @@ function run() {
         }
     } );
 
-    app.get( "/:id", validateGetPost, async ( req, res ) => {
+    app.get( "/post/:id", validateGetPost, async ( req, res ) => {
         try {
             const post = await posts.getPost( req.params.id );
 
             handleSuccess( res, post );
+        } catch ( err ) {
+            handleError( res, err );
+        }
+    } );
+
+    app.get( "/latest", async ( req, res ) => {
+        try {
+            const posts_ = await posts.getLatest();
+
+            handleSuccess( res, posts_ );
+        } catch ( err ) {
+            handleError( res, err );
+        }
+    } );
+
+    app.get( "/top", async ( req, res ) => {
+        try {
+            const posts_ = await posts.getMostUsed();
+
+            handleSuccess( res, posts_ );
         } catch ( err ) {
             handleError( res, err );
         }
