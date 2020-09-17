@@ -11,11 +11,11 @@ const { handleError, handleSuccess, validate } = require( "./utils" );
 
 const validateNewPostInput = validate( [
     body( 'stickerId' ).isLength( { min: 15, max: 18 } ).trim().escape(),
-    body( 'trackId' ).isLength( { min: 15, max: 25 } ).trim().escape()
+    body( 'trackId' ).isLength( { min: 17, max: 25 } ).trim().escape()
 ] );
 
 const validateGetPostInput = validate( [
-    param( 'id' ).isLength( { min: 40 } ).trim().escape().custom( value => {
+    param( 'id' ).isLength( { min: 38 } ).trim().escape().custom( value => {
         const pair = value.split( ':' );
 
         if ( pair.length !== 2 ) return Promise.reject();
@@ -23,7 +23,7 @@ const validateGetPostInput = validate( [
         const xl = pair[0].length;
         const yl = pair[1].length;
 
-        if ( xl >= 15 && xl <= 18 && yl >= 15 && yl <= 25 ) {
+        if ( xl >= 15 && xl <= 18 && yl >= 17 && yl <= 25 ) {
             return Promise.resolve( value );
         }
 
@@ -34,7 +34,11 @@ const validateGetPostInput = validate( [
 function run() {
     const app = express();
 
-    app.enable( 'trust proxy' );
+    if ( process.env.NODE_ENV !== 'development' ) {
+        app.enable( 'trust proxy' );
+
+        app.use( express_enforces_ssl() );
+    }
 
     app.use( helmet() );
 
@@ -43,8 +47,7 @@ function run() {
         max: 100, // limit each IP to 100 requests per windowMs
     } ) );
 
-    app.use( express_enforces_ssl() );
-    app.use( hpp({}) );
+    app.use( hpp( {} ) );
     app.use( express.json() );
 
     app.post( "/", validateNewPostInput, async ( req, res ) => {
