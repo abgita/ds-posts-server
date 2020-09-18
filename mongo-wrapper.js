@@ -31,7 +31,7 @@ module.exports = {
         return database ? database.collection( collectionName ) : null;
     },
 
-    close: function () {
-        client.close();
+    close: async function () {
+        await client.close();
     }
 }

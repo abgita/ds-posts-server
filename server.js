@@ -1,107 +1,38 @@
-const { URL, PORT, ORIGIN } = process.env;
-
 const express = require( "express" );
-const express_enforces_ssl = require( 'express-enforces-ssl' );
-const hpp = require( 'hpp' );
-const helmet = require( "helmet" );
-const rateLimit = require( "express-rate-limit" );
-const posts = require( "./posts" );
-const { param, body } = require( "express-validator" );
-const { handleError, handleSuccess, validate } = require( "./utils" );
+const logger = require( "./utils/logger" );
 
-const validateNewPostInput = validate( [
-    body( 'stickerId' ).isLength( { min: 15, max: 18 } ).trim().escape(),
-    body( 'trackId' ).isLength( { min: 17, max: 25 } ).trim().escape()
-] );
+const { setupMiddlewares } = require( "./utils/rest-api-utils" );
+const { onExit } = require( "./utils/server-utils" );
 
-const validateGetPostInput = validate( [
-    param( 'id' ).isLength( { min: 38 } ).trim().escape().custom( value => {
-        const pair = value.split( ':' );
-
-        if ( pair.length !== 2 ) return Promise.reject();
-
-        const xl = pair[0].length;
-        const yl = pair[1].length;
-
-        if ( xl >= 15 && xl <= 18 && yl >= 17 && yl <= 25 ) {
-            return Promise.resolve( value );
-        }
-
-        return Promise.reject();
-    } )
-] );
+const postsModel = require( "./posts/model" );
+const postsRouter = require( "./posts/router" );
 
 function run() {
+    const { URL, PORT } = process.env;
+
     const app = express();
 
-    if ( process.env.NODE_ENV !== 'development' ) {
-        app.enable( 'trust proxy' );
+    setupMiddlewares( app );
 
-        app.use( express_enforces_ssl() );
-    }
+    app.use( "/posts", postsRouter );
 
-    app.use( helmet() );
-
-    app.use( rateLimit( {
-        windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 100, // limit each IP to 100 requests per windowMs
-    } ) );
-
-    app.use( hpp( {} ) );
-    app.use( express.json() );
-
-    app.post( "/", validateNewPostInput, async ( req, res ) => {
-        console.log( req );
-
-        const stickerId = req.body.stickerId;
-        const trackId = req.body.trackId;
-
-        try {
-            const post = await posts.addPost( stickerId, trackId );
-
-            handleSuccess( res, post );
-        } catch ( err ) {
-            handleError( res, err );
-        }
-    } );
-
-    app.get( "/", async ( req, res ) => {
+    app.get( "*", ( req, res ) => {
         res.sendStatus( 404 );
     } );
 
-    app.get( "/latest", async ( req, res ) => {
-        try {
-            const posts_ = await posts.getLatest();
-
-            handleSuccess( res, posts_ );
-        } catch ( err ) {
-            handleError( res, err );
-        }
+    const server = app.listen( PORT, () => {
+        logger.info( "Server running on %s:%s", URL, PORT );
     } );
 
-    app.get( "/top", async ( req, res ) => {
-        try {
-            const posts_ = await posts.getMostUsed();
+    onExit( () => {
+        return new Promise( ( resolve ) => {
+            server.close( () => {
+                resolve();
 
-            handleSuccess( res, posts_ );
-        } catch ( err ) {
-            handleError( res, err );
-        }
-    } );
-
-    app.get( "/:id", validateGetPostInput, async ( req, res ) => {
-        try {
-            const post = await posts.getPost( req.params.id );
-
-            handleSuccess( res, post );
-        } catch ( err ) {
-            handleError( res, err );
-        }
-    } );
-
-    app.listen( PORT, () => {
-        console.log( "ds-posts-server server running on %s:%s", URL, PORT );
+                logger.info( "Server closed" );
+            } );
+        } )
     } );
 }
 
-posts.init().then( run ).catch( console.error );
+postsModel.init().then( run ).catch( logger.error );

@@ -1,22 +1,27 @@
 "use strict";
 
-const db = require( './mongodb-wrapper' );
+const { onExit } = require( "../utils/server-utils" );
+const db = require( '../mongo-wrapper' );
 
 let stats, posts;
 
 const cache = {
     mostUsed: {
         content: undefined,
-        expirationTime: 0
-    }
-}
+        expirationTime: 0,
 
-async function get( cache, fetch ) {
+        fetch: function () {
+            return collectionFindArray( stats.pairs, findOpts.pairs );
+        }
+    }
+};
+
+const tryGetFromCache = async function ( cache ) {
     if ( cache.content && Date.now() < cache.expirationTime ) {
         return cache.content;
     }
 
-    const result = await Promise.resolve( fetch() );
+    const result = await Promise.resolve( cache.fetch() );
 
     cache.expirationTime = Date.now() + 3600 * 1000;
     cache.content = result;
@@ -24,7 +29,7 @@ async function get( cache, fetch ) {
     return result;
 }
 
-async function updateUsage( collection, filter ) {
+const updateUsage = async function ( collection, filter ) {
     const result = await collection.findOneAndUpdate(
         filter,
         { $inc: { usage: 1 } },
@@ -32,11 +37,22 @@ async function updateUsage( collection, filter ) {
     );
 
     return result.value ? result.value.usage : 0;
-}
+};
+
+const findOpts = {
+    pairs: { sort: { usage: -1 }, projection: { _id: 0 }, limit: 20 },
+    posts: { sort: { $natural: -1 }, projection: { _id: 0 }, limit: 10 },
+};
+
+const collectionFindArray = function ( collection, opts, query ) {
+    return collection.find( query, opts ).toArray();
+};
 
 module.exports = {
     init: async () => {
         await db.connect();
+
+        onExit( db.close );
 
         stats = {
             stickers: db.getCollection( "stickers-stats" ),
@@ -60,10 +76,7 @@ module.exports = {
             updateTrackUsage
         ] );
 
-        const post = {
-            pairId: pairId
-            /*date: new Date()*/
-        };
+        const post = { pairId: pairId };
 
         await posts.insertOne( post );
 
@@ -79,14 +92,10 @@ module.exports = {
     },
 
     getLatest: async () => {
-        return await posts.find( {}, { sort: { $natural: -1 }, projection: { _id: 0 }, limit: 10 } ).toArray();
+        return await collectionFindArray( posts, findOpts.posts );
     },
 
     getMostUsed: async () => {
-        const fetch = () => {
-            return stats.pairs.find( {}, { sort: { usage: -1 }, projection: { _id: 0 }, limit: 20 } ).toArray();
-        };
-
-        return await get( cache.mostUsed, fetch );
+        return await tryGetFromCache( cache.mostUsed );
     }
 };
