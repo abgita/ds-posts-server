@@ -6,12 +6,12 @@ const { handleError, handleSuccess, validateRequestInput } = require( "../utils/
 const { param, body } = require( "express-validator" );
 
 const validateNewPostInput = validateRequestInput( [
-    body( 'stickerId' ).isLength( { min: 15, max: 18 } ).trim().escape(),
-    body( 'trackId' ).isLength( { min: 17, max: 25 } ).trim().escape()
+    body( "stickerId" ).isLength( { min: 15, max: 18 } ).trim().escape(),
+    body( "trackId" ).isLength( { min: 17, max: 25 } ).trim().escape()
 ] );
 
 const validateGetPostInput = validateRequestInput( [
-    param( 'id' ).isLength( { min: 38 } ).trim().escape().custom( value => {
+    param( "id" ).isLength( { min: 38 } ).trim().escape().custom( value => {
         const pair = value.split( ':' );
 
         if ( pair.length !== 2 ) return Promise.reject();

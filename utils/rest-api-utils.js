@@ -10,8 +10,8 @@ const ORIGIN = process.env.ORIGIN;
 
 module.exports = {
     setupMiddlewares: function ( expressApp ) {
-        if ( process.env.NODE_ENV !== 'development' ) {
-            expressApp.enable( 'trust proxy' );
+        if ( process.env.NODE_ENV !== "development" ) {
+            expressApp.enable( "trust proxy" );
 
             expressApp.use( express_enforces_ssl() );
         }

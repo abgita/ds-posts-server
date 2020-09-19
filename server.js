@@ -31,7 +31,7 @@ function run() {
 
                 logger.info( "Server closed" );
             } );
-        } )
+        } );
     } );
 }
 

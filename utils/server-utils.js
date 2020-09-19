@@ -26,7 +26,7 @@ function handleError( res, privateError, publicError, errorCode = 500 ) {
 
     res.status( errorCode );
 
-    if ( typeof publicError === 'string' && publicError.length > 0 ) {
+    if ( typeof publicError === "string" && publicError.length > 0 ) {
         res.json( { error: publicError } );
     } else {
         res.send();
@@ -38,7 +38,7 @@ function handleSuccess( res, publicMsg, successCode = 200 ) {
 
     if ( !publicMsg ) {
         res.send();
-    } else if ( typeof publicMsg === 'string' && publicMsg.length > 0 ) {
+    } else if ( typeof publicMsg === "string" && publicMsg.length > 0 ) {
         res.json( { message: publicMsg } );
     } else {
         res.json( publicMsg );

@@ -1,7 +1,7 @@
 "use strict";
 
 const { onExit } = require( "../utils/server-utils" );
-const db = require( '../mongo-wrapper' );
+const db = require( "../mongo-wrapper" );
 
 let stats, posts;
 
@@ -27,7 +27,7 @@ const tryGetFromCache = async function ( cache ) {
     cache.content = result;
 
     return result;
-}
+};
 
 const updateUsage = async function ( collection, filter ) {
     const result = await collection.findOneAndUpdate(
@@ -64,7 +64,7 @@ module.exports = {
     },
 
     addPost: async ( stickerId, trackId ) => {
-        const pairId = stickerId + ':' + trackId;
+        const pairId = stickerId + ":" + trackId;
 
         const updatePairUsage = updateUsage( stats.pairs, { "id": pairId } );
         const updateStickerUsage = updateUsage( stats.stickers, { "id": stickerId } );
@@ -87,7 +87,7 @@ module.exports = {
         try {
             return { id: id };
         } catch ( error ) {
-            throw new Error( 'Cannot get post!' );
+            throw new Error( "Cannot get post!" );
         }
     },
 

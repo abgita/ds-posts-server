@@ -1,15 +1,12 @@
-const { createLogger, format, transports } = require( 'winston' );
+const { createLogger, format, transports } = require( "winston" );
 
-const inProduction = process.env.NODE_ENV === 'production';
+const inProduction = process.env.NODE_ENV === "production";
 
 const logger = createLogger( {
-    level: 'info',
+    level: "info",
     silent: inProduction,
 
     format: format.combine(
-        /*format.timestamp( {
-            format: 'YYYY-MM-DD HH:mm:ss'
-        } ),*/
         format.errors( { stack: true } ),
         format.splat(),
         format.json()
