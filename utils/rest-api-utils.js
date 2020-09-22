@@ -9,7 +9,7 @@ const hpp = require( "hpp" );
 const ORIGIN = process.env.ORIGIN;
 
 module.exports = {
-    setupMiddlewares: function ( expressApp ) {
+    setupMiddlewares: function ( expressApp, ...middlewares ) {
         if ( process.env.NODE_ENV !== "development" ) {
             expressApp.enable( "trust proxy" );
 
@@ -26,12 +26,18 @@ module.exports = {
         expressApp.use( hpp( {} ) );
         expressApp.use( json() );
 
+        if ( middlewares && middlewares.length > 0 ) {
+            for ( let middleware of middlewares ) {
+                expressApp.use( middleware );
+            }
+        }
+
         return expressApp;
     },
 
     allowOrigin: origin => {
         return function ( req, res, next ) {
-            res.header( "Access-Control-Allow-Origin", origin || ORIGIN );
+            res.header( "Access-Control-Allow-Origin", origin | ORIGIN );
 
             next();
         }
