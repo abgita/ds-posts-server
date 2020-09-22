@@ -1,5 +1,7 @@
 "use strict";
 
+/* A tiny mongodb wrapper */
+
 const { MongoClient } = require( "mongodb" );
 
 let client, database;
