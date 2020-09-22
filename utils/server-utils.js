@@ -4,9 +4,9 @@ const logger = require( "./logger" );
 
 const onExitListeners = [];
 
-function onExit( listener ) {
+const onExit = function ( listener ) {
     onExitListeners.push( listener );
-}
+};
 
 const exit = async function () {
     logger.info( "Shutting down server" );
@@ -16,12 +16,12 @@ const exit = async function () {
     }
 
     process.exit( 0 )
-}
+};
 
 process.on( "SIGTERM", exit );
 process.on( "SIGINT", exit )
 
-function handleError( res, privateError, publicError, errorCode = 500 ) {
+const handleError = function ( res, privateError, publicError, errorCode = 500 ) {
     if ( privateError ) logger.error( privateError );
 
     res.status( errorCode );
@@ -31,9 +31,9 @@ function handleError( res, privateError, publicError, errorCode = 500 ) {
     } else {
         res.send();
     }
-}
+};
 
-function handleSuccess( res, publicMsg, successCode = 200 ) {
+const handleSuccess = function ( res, publicMsg, successCode = 200 ) {
     res.status( successCode );
 
     if ( !publicMsg ) {
@@ -43,11 +43,11 @@ function handleSuccess( res, publicMsg, successCode = 200 ) {
     } else {
         res.json( publicMsg );
     }
-}
+};
 
 const { validationResult } = require( "express-validator" );
 
-function validateRequestInput( validations ) {
+const validateRequestInput = function ( validations ) {
     return async ( req, res, next ) => {
         await Promise.all( validations.map( validation => validation.run( req ) ) );
 
@@ -59,11 +59,24 @@ function validateRequestInput( validations ) {
 
         handleError( res, errors.array(), null, 400 )
     };
+};
+
+const closeOnExit = function ( server ) {
+    onExit( () => {
+        return new Promise( ( resolve ) => {
+            server.close( () => {
+                resolve();
+
+                logger.info( "Server closed" );
+            } );
+        } );
+    } );
 }
 
 module.exports = {
     handleError: handleError,
     handleSuccess: handleSuccess,
     validateRequestInput: validateRequestInput,
-    onExit: onExit
+    onExit: onExit,
+    closeOnExit: closeOnExit
 };

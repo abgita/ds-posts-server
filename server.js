@@ -2,7 +2,7 @@ const express = require( "express" );
 const logger = require( "./utils/logger" );
 
 const { setupMiddlewares } = require( "./utils/rest-api-utils" );
-const { onExit } = require( "./utils/server-utils" );
+const { closeOnExit } = require( "./utils/server-utils" );
 
 const postsModel = require( "./posts/model" );
 const postsRouter = require( "./posts/router" );
@@ -24,15 +24,7 @@ function run() {
         logger.info( "Server running on %s:%s", URL, PORT );
     } );
 
-    onExit( () => {
-        return new Promise( ( resolve ) => {
-            server.close( () => {
-                resolve();
-
-                logger.info( "Server closed" );
-            } );
-        } );
-    } );
+    closeOnExit( server );
 }
 
 postsModel.init().then( run ).catch( logger.error );
