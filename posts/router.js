@@ -3,6 +3,7 @@ const posts = require( "./model" );
 
 const { allowOrigin } = require( "../utils/rest-api-utils" );
 const { handleError, handleSuccess, validateRequestInput } = require( "../utils/server-utils" );
+const { validationResult } = require( "express-validator" );
 const { param, body } = require( "express-validator" );
 
 const validateNewPostInput = validateRequestInput( [
@@ -10,28 +11,22 @@ const validateNewPostInput = validateRequestInput( [
     body( "trackId" ).isLength( { min: 17, max: 25 } ).trim().escape()
 ] );
 
-const validateGetPostInput = validateRequestInput( [
-    param( "id" ).isLength( { min: 38 } ).trim().escape().custom( value => {
-        const pair = value.split( ':' );
+const validateGetPostInput = param( "id" ).isLength( { min: 38 } ).trim().escape().custom( value => {
+    const pair = value.split( ':' );
 
-        if ( pair.length !== 2 ) return Promise.reject();
+    if ( pair.length !== 2 ) return Promise.reject();
 
-        const xl = pair[0].length;
-        const yl = pair[1].length;
+    const xl = pair[0].length;
+    const yl = pair[1].length;
 
-        if ( xl >= 15 && xl <= 18 && yl >= 17 && yl <= 25 ) {
-            return Promise.resolve( value );
-        }
+    if ( xl >= 15 && xl <= 18 && yl >= 17 && yl <= 25 ) {
+        return Promise.resolve( value );
+    }
 
-        return Promise.reject();
-    } )
-] );
+    return Promise.reject();
+} );
 
 const router = express.Router();
-
-router.get( "/", async ( req, res ) => {
-    res.sendStatus( 404 );
-} );
 
 router.post( "/", validateNewPostInput, async ( req, res ) => {
     const stickerId = req.body.stickerId;
@@ -69,6 +64,12 @@ router.get( "/top", async ( req, res ) => {
 } );
 
 router.get( "/:id", validateGetPostInput, async ( req, res ) => {
+    const errors = validationResult( req );
+
+    if ( !errors.isEmpty() ) {
+        return handleError( res, errors.array(), "Not found", 404 );
+    }
+
     try {
         const post = await posts.getPost( req.params.id );
 
