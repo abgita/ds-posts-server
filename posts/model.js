@@ -2,31 +2,21 @@
 
 const { onExit } = require( "../utils/server-utils" );
 const db = require( "../mongo-wrapper" );
+const cacheThis = require( "../utils/cache-this" );
 
 let stats, posts;
 
-const cache = {
-    mostUsed: {
-        content: undefined,
-        expirationTime: 0,
+const mostUsed = cacheThis( async function () {
+    return await collectionFindArray( stats.pairs, findOpts.pairs );
+}, 60 * 60 * 1000, /* an hour */ );
 
-        fetch: function () {
-            return collectionFindArray( stats.pairs, findOpts.pairs );
-        }
-    }
+const findOpts = {
+    pairs: { sort: { usage: -1 }, projection: { _id: 0 }, limit: 20 },
+    posts: { sort: { $natural: -1 }, projection: { _id: 0 }, limit: 10 },
 };
 
-const tryGetFromCache = async function ( cache ) {
-    if ( cache.content && Date.now() < cache.expirationTime ) {
-        return cache.content;
-    }
-
-    const result = await Promise.resolve( cache.fetch() );
-
-    cache.expirationTime = Date.now() + 3600 * 1000;
-    cache.content = result;
-
-    return result;
+const collectionFindArray = function ( collection, opts, query ) {
+    return collection.find( query, opts ).toArray();
 };
 
 const updateUsage = async function ( collection, filter ) {
@@ -37,15 +27,6 @@ const updateUsage = async function ( collection, filter ) {
     );
 
     return result.value ? result.value.usage : 0;
-};
-
-const findOpts = {
-    pairs: { sort: { usage: -1 }, projection: { _id: 0 }, limit: 20 },
-    posts: { sort: { $natural: -1 }, projection: { _id: 0 }, limit: 10 },
-};
-
-const collectionFindArray = function ( collection, opts, query ) {
-    return collection.find( query, opts ).toArray();
 };
 
 module.exports = {
@@ -96,6 +77,6 @@ module.exports = {
     },
 
     getMostUsed: async () => {
-        return await tryGetFromCache( cache.mostUsed );
+        return await mostUsed.get();
     }
 };
