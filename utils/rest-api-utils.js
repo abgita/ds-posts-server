@@ -1,10 +1,11 @@
 "use strict";
 
-const { json } = require( "express" );
+const { json, urlencoded } = require( "express" );
 const express_enforces_ssl = require( "express-enforces-ssl" );
 const helmet = require( "helmet" );
 const rateLimit = require( "express-rate-limit" );
 const hpp = require( "hpp" );
+const { handleError } = require( "./server-utils" );
 
 const ORIGIN = process.env.ORIGIN;
 
@@ -24,7 +25,16 @@ module.exports = {
         } ) );
 
         expressApp.use( hpp( {} ) );
-        expressApp.use( json() );
+        expressApp.use( urlencoded( { limit: 100, parameterLimit: 2 } ) );
+        expressApp.use( json( { limit: 100 } ) );
+
+        expressApp.use( ( err, req, res, next ) => {
+            if ( err.statusCode === 413 ) {
+                handleError( res, null, null, 413 );
+            } else {
+                next();
+            }
+        } );
 
         if ( middlewares && middlewares.length > 0 ) {
             for ( let middleware of middlewares ) {
