@@ -30,7 +30,7 @@ module.exports = {
 
         expressApp.use( ( err, req, res, next ) => {
             if ( err.statusCode === 413 ) {
-                handleError( res, null, null, 413 );
+                handleError( res, null, null, err.statusCode );
             } else {
                 next();
             }
@@ -47,7 +47,7 @@ module.exports = {
 
     allowOrigin: origin => {
         return function ( req, res, next ) {
-            res.header( "Access-Control-Allow-Origin", origin | ORIGIN );
+            res.header( "Access-Control-Allow-Origin", origin || ORIGIN );
 
             next();
         }
