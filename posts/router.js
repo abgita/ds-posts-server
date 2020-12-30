@@ -6,12 +6,15 @@ const { handleError, handleSuccess, validateRequestInput } = require( "../utils/
 const { validationResult } = require( "express-validator" );
 const { param, body } = require( "express-validator" );
 
+const STICKER_ID_LIMITS = [14,20];
+const TRACK_ID_LIMITS = [17,25];
+
 const validateNewPostInput = validateRequestInput( [
-    body( "stickerId" ).isLength( { min: 15, max: 18 } ).trim().escape(),
-    body( "trackId" ).isLength( { min: 17, max: 25 } ).trim().escape()
+    body( "stickerId" ).isLength( { min: STICKER_ID_LIMITS[0], max: STICKER_ID_LIMITS[1] } ).trim().escape(),
+    body( "trackId" ).isLength( { min: TRACK_ID_LIMITS[0], max: TRACK_ID_LIMITS[1] } ).trim().escape()
 ] );
 
-const validateGetPostInput = param( "id" ).isLength( { min: 38 } ).trim().escape().custom( value => {
+const validateGetPostInput = param( "id" ).isLength( { min: 35 } ).trim().escape().custom( value => {
     const pair = value.split( ':' );
 
     if ( pair.length !== 2 ) return Promise.reject();
@@ -19,7 +22,8 @@ const validateGetPostInput = param( "id" ).isLength( { min: 38 } ).trim().escape
     const xl = pair[0].length;
     const yl = pair[1].length;
 
-    if ( xl >= 15 && xl <= 18 && yl >= 17 && yl <= 25 ) {
+    if ( xl >= STICKER_ID_LIMITS[0] && xl <= STICKER_ID_LIMITS[1] &&
+    	 yl >= TRACK_ID_LIMITS[0] && yl <= TRACK_ID_LIMITS[1] ) {
         return Promise.resolve( value );
     }
 
