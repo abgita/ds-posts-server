@@ -47,7 +47,7 @@ router.post( "/", validateNewPostInput, async ( req, res ) => {
 
 router.use( allowOrigin() );
 
-router.get( "/latest", async ( req, res ) => {
+router.get( "/latest", async ( _, res ) => {
     try {
         const posts_ = await posts.getLatest();
 
@@ -57,7 +57,7 @@ router.get( "/latest", async ( req, res ) => {
     }
 } );
 
-router.get( "/top", async ( req, res ) => {
+router.get( "/top", async ( _, res ) => {
     try {
         const posts_ = await posts.getMostUsed();
 
