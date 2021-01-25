@@ -20,6 +20,8 @@ const postRateLimitOpts = {
     max: process.env.MAX_NEW_POSTS_PER_HOUR,
 };
 
+router.use(allowOrigin());
+
 router.post("/", [rateLimit(postRateLimitOpts), validateNewPostInput], async (req, res) => {
     const stickerId = req.body.stickerId;
     const trackId = req.body.trackId;
@@ -32,8 +34,6 @@ router.post("/", [rateLimit(postRateLimitOpts), validateNewPostInput], async (re
         handleError(res, err);
     }
 });
-
-router.use(allowOrigin());
 
 router.options("/", handleCORSPreflightRequest({methods: ["POST"]}));
 
