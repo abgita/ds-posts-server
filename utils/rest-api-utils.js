@@ -51,5 +51,7 @@ module.exports = {
 
             next();
         }
-    }
+    },
+
+    rateLimit: rateLimit
 };
