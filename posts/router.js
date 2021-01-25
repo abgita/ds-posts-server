@@ -33,11 +33,11 @@ router.post("/", [rateLimit(postRateLimitOpts), validateNewPostInput], async (re
     }
 });
 
-router.use(allowOrigin());
-
-router.options("/", (_, res) => {
+router.options("/", allowOrigin("*"), (_, res) => {
     res.send("POST");
 });
+
+router.use(allowOrigin());
 
 router.get("/latest", async (_, res) => {
     try {
