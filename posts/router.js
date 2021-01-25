@@ -54,6 +54,10 @@ router.post("/", [rateLimit(postRateLimitOpts), validateNewPostInput], async (re
 
 router.use(allowOrigin());
 
+router.options("/", (_, res) => {
+    res.send("POST");
+});
+
 router.get("/latest", async (_, res) => {
     try {
         const posts_ = await posts.getLatest();
