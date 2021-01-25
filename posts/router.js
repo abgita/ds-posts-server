@@ -1,7 +1,7 @@
 const express = require("express");
 const posts = require("./model");
 
-const {allowOrigin, allowMethods, rateLimit} = require("../utils/rest-api-utils");
+const {allowOrigin, handleCORSPreflightRequest, rateLimit} = require("../utils/rest-api-utils");
 const {handleError, handleSuccess, validateRequestInput} = require("../utils/server-utils");
 const {body} = require("express-validator");
 
@@ -35,9 +35,7 @@ router.post("/", [rateLimit(postRateLimitOpts), validateNewPostInput], async (re
 
 router.use(allowOrigin());
 
-router.options("/", allowMethods(["POST"]), (_, res) => {
-    res.send();
-});
+router.options("/", handleCORSPreflightRequest({methods: ["POST"]}));
 
 router.get("/latest", async (_, res) => {
     try {

@@ -45,20 +45,30 @@ module.exports = {
         return expressApp;
     },
 
-    allowOrigin: origin => {
+    allowOrigin: (origin = ORIGIN) => {
         return function (req, res, next) {
-            res.header("Access-Control-Allow-Origin", origin || ORIGIN);
+            res.header("Access-Control-Allow-Origin", origin);
 
             next();
         }
     },
 
-    allowMethods: methods => {
-        return function (req, res, next) {
-            res.header("Access-Control-Allow-Methods", methods.join(" "));
+    handleCORSPreflightRequest: options => {
+        const {
+            origin = ORIGIN,
+            methods,
+            headers = ["Content-Type", "x-requested-with"],
+            maxAge = 86400 /*24 hours in seconds*/
+        } = options;
 
-            next();
-        }
+        return (_, res) => {
+            res.header("Access-Control-Allow-Origin", origin);
+            res.header("Access-Control-Allow-Methods", methods.join(" "));
+            res.header("Access-Control-Allow-Headers", headers.join(", "));
+            res.header("Access-Control-Max-Age", maxAge);
+
+            res.sendStatus(204);
+        };
     },
 
     rateLimit: rateLimit
