@@ -35,8 +35,8 @@ const validateGetPostInput = param("id").isLength({min: MIN_ID_LENGTH}).trim().e
 const router = express.Router();
 
 const postRateLimitOpts = {
-    windowMs: 30 * 60 * 1000, // 30 minutes
-    max: 10, // limit each IP to 10 requests per windowMs
+    windowMs: 60 * 60 * 1000, // 60 minutes
+    max: process.env.MAX_NEW_POSTS_PER_HOUR,
 };
 
 router.post("/", [rateLimit(postRateLimitOpts), validateNewPostInput], async (req, res) => {
