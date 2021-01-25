@@ -74,9 +74,9 @@ const closeOnExit = function ( server ) {
 }
 
 module.exports = {
-    handleError: handleError,
-    handleSuccess: handleSuccess,
-    validateRequestInput: validateRequestInput,
-    onExit: onExit,
-    closeOnExit: closeOnExit
+    handleError,
+    handleSuccess,
+    validateRequestInput,
+    onExit,
+    closeOnExit
 };
