@@ -1,7 +1,7 @@
 const express = require("express");
 const posts = require("./model");
 
-const {allowOrigin} = require("../utils/rest-api-utils");
+const {allowOrigin, rateLimit} = require("../utils/rest-api-utils");
 const {handleError, handleSuccess, validateRequestInput} = require("../utils/server-utils");
 const {validationResult} = require("express-validator");
 const {param, body} = require("express-validator");
@@ -34,7 +34,12 @@ const validateGetPostInput = param("id").isLength({min: MIN_ID_LENGTH}).trim().e
 
 const router = express.Router();
 
-router.post("/", validateNewPostInput, async (req, res) => {
+const postRateLimitOpts = {
+    windowMs: 30 * 60 * 1000, // 30 minutes
+    max: 10, // limit each IP to 10 requests per windowMs
+};
+
+router.post("/", [rateLimit(postRateLimitOpts), validateNewPostInput], async (req, res) => {
     const stickerId = req.body.stickerId;
     const trackId = req.body.trackId;
 
