@@ -64,14 +64,6 @@ module.exports = {
         return { id: pairId };
     },
 
-    getPost: async ( id ) => {
-        try {
-            return { id: id };
-        } catch ( error ) {
-            throw new Error( "Cannot get post!" );
-        }
-    },
-
     getLatest: async () => {
         return await collectionFindArray( posts, findOpts.posts );
     },

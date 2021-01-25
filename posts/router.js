@@ -3,34 +3,15 @@ const posts = require("./model");
 
 const {allowOrigin, rateLimit} = require("../utils/rest-api-utils");
 const {handleError, handleSuccess, validateRequestInput} = require("../utils/server-utils");
-const {validationResult} = require("express-validator");
-const {param, body} = require("express-validator");
+const {body} = require("express-validator");
 
 const STICKER_ID_LIMITS = [14, 20];
 const TRACK_ID_LIMITS = [17, 25];
-
-const MIN_ID_LENGTH = STICKER_ID_LIMITS[0] + TRACK_ID_LIMITS[0];
 
 const validateNewPostInput = validateRequestInput([
     body("stickerId").isLength({min: STICKER_ID_LIMITS[0], max: STICKER_ID_LIMITS[1]}).trim().escape(),
     body("trackId").isLength({min: TRACK_ID_LIMITS[0], max: TRACK_ID_LIMITS[1]}).trim().escape()
 ]);
-
-const validateGetPostInput = param("id").isLength({min: MIN_ID_LENGTH}).trim().escape().custom(value => {
-    const pair = value.split(':');
-
-    if (pair.length !== 2) return Promise.reject();
-
-    const xl = pair[0].length;
-    const yl = pair[1].length;
-
-    if (xl >= STICKER_ID_LIMITS[0] && xl <= STICKER_ID_LIMITS[1] &&
-        yl >= TRACK_ID_LIMITS[0] && yl <= TRACK_ID_LIMITS[1]) {
-        return Promise.resolve(value);
-    }
-
-    return Promise.reject();
-});
 
 const router = express.Router();
 
@@ -73,22 +54,6 @@ router.get("/top", async (_, res) => {
         const posts_ = await posts.getMostUsed();
 
         handleSuccess(res, posts_);
-    } catch (err) {
-        handleError(res, err);
-    }
-});
-
-router.get("/:id", validateGetPostInput, async (req, res) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return handleError(res, errors.array(), "Not found", 404);
-    }
-
-    try {
-        const post = await posts.getPost(req.params.id);
-
-        handleSuccess(res, post);
     } catch (err) {
         handleError(res, err);
     }
