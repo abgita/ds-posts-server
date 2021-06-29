@@ -52,6 +52,14 @@ module.exports = {
             next();
         }
     },
+    
+    cacheControl: maxAge => {
+        return function (req, res, next) {
+            res.header('Cache-control', 'private, max-age=' + maxAge)
+
+            next()
+        }
+    },
 
     handleCORSPreflightRequest: options => {
         const {

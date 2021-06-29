@@ -1,7 +1,7 @@
 const express = require( "express" );
 const logger = require( "./utils/logger" );
 
-const { setupMiddlewares } = require( "./utils/rest-api-utils" );
+const { setupMiddlewares, cacheControl } = require( "./utils/rest-api-utils" );
 const { closeOnExit } = require( "./utils/server-utils" );
 
 const postsModel = require( "./posts/model" );
@@ -12,7 +12,7 @@ function run() {
 
     const app = express();
 
-    setupMiddlewares( app );
+    setupMiddlewares( app, cacheControl(60*60*24) );
 
     app.use( "/posts", postsRouter );
 
